@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.reportsListView = new System.Windows.Forms.ListView();
+            this.eventsListView = new System.Windows.Forms.ListView();
             this.brandsComboBox = new System.Windows.Forms.ComboBox();
             this.brandsLabel = new System.Windows.Forms.Label();
             this.getReportsButton = new System.Windows.Forms.Button();
@@ -41,7 +41,7 @@
             this.tableLayoutPanel1.ColumnCount = 2;
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 67F));
-            this.tableLayoutPanel1.Controls.Add(this.reportsListView, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.eventsListView, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.brandsComboBox, 1, 1);
             this.tableLayoutPanel1.Controls.Add(this.brandsLabel, 0, 1);
             this.tableLayoutPanel1.Controls.Add(this.getReportsButton, 1, 2);
@@ -57,14 +57,14 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(347, 438);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
-            // reportsListView
+            // eventsListView
             // 
-            this.tableLayoutPanel1.SetColumnSpan(this.reportsListView, 2);
-            this.reportsListView.Location = new System.Drawing.Point(3, 3);
-            this.reportsListView.Name = "reportsListView";
-            this.reportsListView.Size = new System.Drawing.Size(341, 213);
-            this.reportsListView.TabIndex = 0;
-            this.reportsListView.UseCompatibleStateImageBehavior = false;
+            this.tableLayoutPanel1.SetColumnSpan(this.eventsListView, 2);
+            this.eventsListView.Location = new System.Drawing.Point(3, 3);
+            this.eventsListView.Name = "eventsListView";
+            this.eventsListView.Size = new System.Drawing.Size(341, 213);
+            this.eventsListView.TabIndex = 0;
+            this.eventsListView.UseCompatibleStateImageBehavior = false;
             // 
             // brandsComboBox
             // 
@@ -122,7 +122,7 @@
         #endregion
 
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-        private System.Windows.Forms.ListView reportsListView;
+        private System.Windows.Forms.ListView eventsListView;
         private System.Windows.Forms.ComboBox brandsComboBox;
         private System.Windows.Forms.Label brandsLabel;
         private System.Windows.Forms.Button getReportsButton;

@@ -29,7 +29,7 @@ namespace FirebrandReportsToolbox
     {
         public static List<object> GetReports(BrandName _brand)
         {
-            switch(_brand)
+            switch (_brand)
             {
                 case BrandName.Runa:
                     return GetRunaReports();
@@ -55,7 +55,7 @@ namespace FirebrandReportsToolbox
             CellFeed cellFeed = GoogleApiDriver.MasterSpreadsheetService.Query(cellQuery);
             List<List<string>> sharedDateTable1 = Utility.CellFeedTo2DList(cellFeed);
 
-            //Utility.SaveAsExcelWorkbook("SharedDateTable1", Utility.NestedListToDataTable(sharedDateTable1));
+            FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information, "Finished getting sharedDataTable1");
 
             // Then shared data table 2 (second part of report)
             cellQuery = new CellQuery(_worksheet.CellFeedLink);
@@ -68,9 +68,11 @@ namespace FirebrandReportsToolbox
             cellFeed = GoogleApiDriver.MasterSpreadsheetService.Query(cellQuery);
             List<List<string>> sharedDateTable2 = Utility.CellFeedTo2DList(cellFeed);
 
-            //Utility.SaveAsExcelWorkbook("SharedDateTable2", Utility.NestedListToDataTable(sharedDateTable2));
+            FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information, "Finished getting sharedDataTable2");
 
             List<List<string>> allSharedDataTable = Utility.Combine2DLists(sharedDateTable1, sharedDateTable2);
+
+            FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information, "Finished getting allSharedDataTable");
 
             return allSharedDataTable;
         }
@@ -79,45 +81,49 @@ namespace FirebrandReportsToolbox
         private const string RunaSalesEndCol = "CY";
         private static List<object> GetRunaReports()
         {
-            SpreadsheetQuery query = new SpreadsheetQuery();
-            query.Title = "Firebrand Master Reports Sheet";
-            SpreadsheetFeed feed = GoogleApiDriver.MasterSpreadsheetService.Query(query);
-
-            if (feed.Entries.Count == 0)
+            Task.Factory.StartNew(() =>
             {
-                MessageBox.Show("No Google spreadsheets found!", "No Spreadsheets", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null; 
-            }
+                SpreadsheetQuery query = new SpreadsheetQuery();
+                query.Title = "Firebrand Master Reports Sheet";
+                SpreadsheetFeed feed = GoogleApiDriver.MasterSpreadsheetService.Query(query);
 
-            SpreadsheetEntry masterReportsSpreadsheet = (SpreadsheetEntry)feed.Entries[0];
-            WorksheetFeed wsFeed = masterReportsSpreadsheet.Worksheets;
-            WorksheetEntry worksheet = (WorksheetEntry)wsFeed.Entries[0];
+                if (feed.Entries.Count == 0)
+                {
+                    MessageBox.Show("No Google spreadsheets found!", "No Spreadsheets", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
-            // Get shared data table
-            List<List<string>> sharedNestedList = GetSharedReportData(worksheet);
-            //DataTable sharedDataTable = GetSharedReportData(worksheet);
+                SpreadsheetEntry masterReportsSpreadsheet = (SpreadsheetEntry)feed.Entries[0];
+                WorksheetFeed wsFeed = masterReportsSpreadsheet.Worksheets;
+                WorksheetEntry worksheet = (WorksheetEntry)wsFeed.Entries[0];
 
-            //Utility.SaveAsExcelWorkbook("FinalSharedDataTable", Utility.NestedListToDataTable(sharedDataTable));
+                // Get shared data table
+                List<List<string>> sharedNestedList = GetSharedReportData(worksheet);
 
-            // Get sales data table
-            CellQuery cellQuery = new CellQuery(worksheet.CellFeedLink);
-            cellQuery.MinimumRow = 1;
-            uint minCol = Utility.LetterToColumn(RunaSalesStartCol);
-            uint maxCol = Utility.LetterToColumn(RunaSalesEndCol);
-            cellQuery.MinimumColumn = minCol;
-            cellQuery.MaximumColumn = maxCol;
-            cellQuery.ReturnEmpty = ReturnEmptyCells.yes;
-            CellFeed cellFeed = GoogleApiDriver.MasterSpreadsheetService.Query(cellQuery);
-            List<List<string>> salesNestedList = Utility.CellFeedTo2DList(cellFeed);
-            //DataTable salesDataTable = Utility.ExportToDataTable(cellFeed);
+                // Get sales data table
+                CellQuery cellQuery = new CellQuery(worksheet.CellFeedLink);
+                cellQuery.MinimumRow = 1;
+                uint minCol = Utility.LetterToColumn(RunaSalesStartCol);
+                uint maxCol = Utility.LetterToColumn(RunaSalesEndCol);
+                cellQuery.MinimumColumn = minCol;
+                cellQuery.MaximumColumn = maxCol;
+                cellQuery.ReturnEmpty = ReturnEmptyCells.yes;
+                CellFeed cellFeed = GoogleApiDriver.MasterSpreadsheetService.Query(cellQuery);
+                List<List<string>> salesNestedList = Utility.CellFeedTo2DList(cellFeed);
 
-            //Utility.SaveAsExcelWorkbook("SalesDataTable", Utility.NestedListToDataTable(salesDataTable));
+                FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information, "Finished getting salesNestedList");
 
-            // Make final data table
-            List<List<string>> finalDataTable = Utility.Combine2DLists(sharedNestedList, salesNestedList);
+                // Make final data table
+                List<List<string>> finalDataTable = Utility.Combine2DLists(sharedNestedList, salesNestedList);
 
-            Utility.SaveAsExcelWorkbook("RunaSpreadsheet", Utility.NestedListToDataTable(finalDataTable));
+                FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information, "Finished getting finalDataTable");
 
+                Utility.SaveAsExcelWorkbook("RunaSpreadsheet", Utility.NestedListToDataTable(finalDataTable));
+
+                FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information, "Made excel sheet");
+
+
+            });
             return null;
         }
     }
