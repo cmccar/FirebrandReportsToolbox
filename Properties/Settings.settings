@@ -5,5 +5,8 @@
     <Setting Name="RefreshToken" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="ReportsDirectory" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Firebrand Reports Toolbox\Reports\</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

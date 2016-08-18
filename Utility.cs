@@ -13,6 +13,12 @@ using System.Windows.Forms;
 
 namespace FirebrandReportsToolbox
 {
+    public enum EventType
+    {
+        Information,
+        Warning,
+        Error
+    }
     public static class Utility
     {
         public static int GetRandomUnusedPort()
@@ -73,7 +79,7 @@ namespace FirebrandReportsToolbox
             return (uint)column;
         }
 
-        public static void SaveAsExcelWorkbook(string _fileName, DataTable _table)
+        public static bool SaveAsExcelWorkbook(BrandName _brand, string _filePath, DataTable _table)
         {
             Microsoft.Office.Interop.Excel.Application excel;
             Microsoft.Office.Interop.Excel.Workbook workBook;
@@ -92,7 +98,7 @@ namespace FirebrandReportsToolbox
                 workSheet.Name = "ReportsWorksheet";
 
                 workSheet.Range[workSheet.Cells[1, 1], workSheet.Cells[1, 8]].Merge();
-                workSheet.Cells[1, 1] = "Runa Sales Reports";
+                workSheet.Cells[1, 1] = Utility.GetDescription(_brand) + " Reports";
                 workSheet.Cells.Font.Size = 15;
 
 
@@ -136,16 +142,15 @@ namespace FirebrandReportsToolbox
                 border.Weight = 2d;
 
                 cellRange = workSheet.Range[workSheet.Cells[1, 1], workSheet.Cells[2, _table.Columns.Count]];
-
-                workBook.SaveAs(@"C:\Users\avista\Desktop\" + _fileName + ".xlsx"); ;
+                workBook.SaveAs(_filePath);
                 workBook.Close();
                 excel.Quit();
-
+                return true;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
-
+                return false;
             }
             finally
             {
@@ -227,7 +232,7 @@ namespace FirebrandReportsToolbox
                     i = 0;
                 }
 
-                row.Add(ce.InputValue);
+                row.Add(ce.Value);
 
                 i++;
             }

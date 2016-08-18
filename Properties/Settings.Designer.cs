@@ -34,5 +34,17 @@ namespace FirebrandReportsToolbox.Properties {
                 this["RefreshToken"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Firebrand Reports Toolbox\\Reports\\")]
+        public string ReportsDirectory {
+            get {
+                return ((string)(this["ReportsDirectory"]));
+            }
+            set {
+                this["ReportsDirectory"] = value;
+            }
+        }
     }
 }

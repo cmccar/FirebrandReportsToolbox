@@ -128,6 +128,12 @@
     <Compile Include="FirebrandReportsToolboxForm.Designer.cs">
       <DependentUpon>FirebrandReportsToolboxForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="GetReportsOptionsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GetReportsOptionsForm.Designer.cs">
+      <DependentUpon>GetReportsOptionsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="GoogleApiDriver.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -138,6 +144,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FirebrandReportsToolboxForm.resx">
       <DependentUpon>FirebrandReportsToolboxForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GetReportsOptionsForm.resx">
+      <DependentUpon>GetReportsOptionsForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

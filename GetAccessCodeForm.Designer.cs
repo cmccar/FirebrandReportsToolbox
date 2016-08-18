@@ -28,9 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GetAccessCodeForm));
             this.enterAccessCodeTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-            this.descrptionLabel = new System.Windows.Forms.Label();
             this.authorizationUrlTextBox = new System.Windows.Forms.TextBox();
+            this.descrptionLabel = new System.Windows.Forms.Label();
             this.enterAccessCodeTableLayoutPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -49,6 +50,17 @@
             this.enterAccessCodeTableLayoutPanel.Size = new System.Drawing.Size(390, 112);
             this.enterAccessCodeTableLayoutPanel.TabIndex = 6;
             // 
+            // authorizationUrlTextBox
+            // 
+            this.authorizationUrlTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.authorizationUrlTextBox.Location = new System.Drawing.Point(3, 74);
+            this.authorizationUrlTextBox.Margin = new System.Windows.Forms.Padding(3, 18, 3, 3);
+            this.authorizationUrlTextBox.Name = "authorizationUrlTextBox";
+            this.authorizationUrlTextBox.Size = new System.Drawing.Size(384, 20);
+            this.authorizationUrlTextBox.TabIndex = 7;
+            // 
             // descrptionLabel
             // 
             this.descrptionLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -63,23 +75,13 @@
             this.descrptionLabel.Text = "Enter the authorization URL below into your browser and go to it";
             this.descrptionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // authorizationUrlTextBox
-            // 
-            this.authorizationUrlTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.authorizationUrlTextBox.Location = new System.Drawing.Point(3, 74);
-            this.authorizationUrlTextBox.Margin = new System.Windows.Forms.Padding(3, 18, 3, 3);
-            this.authorizationUrlTextBox.Name = "authorizationUrlTextBox";
-            this.authorizationUrlTextBox.Size = new System.Drawing.Size(384, 20);
-            this.authorizationUrlTextBox.TabIndex = 7;
-            // 
             // GetAccessCodeForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(414, 136);
             this.Controls.Add(this.enterAccessCodeTableLayoutPanel);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "GetAccessCodeForm";
             this.Text = "Get Access Code";
             this.enterAccessCodeTableLayoutPanel.ResumeLayout(false);

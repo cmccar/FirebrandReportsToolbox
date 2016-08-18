@@ -22,7 +22,7 @@ namespace FirebrandReportsToolbox
         private static SpreadsheetsService masterSpreadsheetService;
         public static SpreadsheetsService MasterSpreadsheetService { get { return masterSpreadsheetService; } }
 
-        public static void ConfigureOAuth2()
+        public static void ConfigureOAuth2(bool _changeAuth)
         {
             // OAuth 2.0 Client ID and Secrets
             string CLIENT_ID = "3730216929-nauhdvj3mn35p8mjnon14qihhf0idqpe.apps.googleusercontent.com";
@@ -43,7 +43,7 @@ namespace FirebrandReportsToolbox
 
             GOAuth2RequestFactory requestFactory = null;
             string refreshToken = LoadRefreshToken();
-            if(!string.IsNullOrEmpty(refreshToken))
+            if(!string.IsNullOrEmpty(refreshToken) && !_changeAuth)
             {
                 parameters.AccessToken = refreshToken;
                 parameters.RefreshToken = refreshToken;
@@ -83,8 +83,6 @@ namespace FirebrandReportsToolbox
             masterSpreadsheetService.RequestFactory = requestFactory;
         }
 
-        //private static byte[] additionalEntropy = { 1, 2, 3, 4, 5 };
-
         private static string LoadRefreshToken()
         {
             // TO DO: FIX ENCRYPTION - return Encoding.Unicode.GetString(ProtectedData.Unprotect(Convert.FromBase64String(Properties.Settings.Default.RefreshToken), additionalEntropy, DataProtectionScope.CurrentUser));
@@ -98,5 +96,33 @@ namespace FirebrandReportsToolbox
             Properties.Settings.Default.Save();
         }
 
+        /// <summary>
+        /// Enter 0 for a min / max parameter to ignore the parameter
+        /// </summary>
+        /// <param name="_worksheetEntry">Worksheet entry to retrieve cell feed from</param>
+        /// <param name="_minRow">Minimum row in worksheet to retrieve from, enter 0 to ignore parameter</param>
+        /// <param name="_maxRow">Maximum row in worksheet to retrieve from, enter 0 to ignore parameter</param>
+        /// <param name="_minCol">Minimum column in worksheet to retrieve from, enter 0 to ignore parameter</param>
+        /// <param name="_maxCol">Maximum column in worksheet to retrieve from, enter 0 to ignore parameter</param>
+        /// <returns>Retrieved cell feed if successful, otherwise returns null</returns>
+        public static CellFeed GetCellFeed(WorksheetEntry _worksheetEntry, uint _minRow, uint _maxRow, uint _minCol, uint _maxCol)
+        {
+            try
+            {
+                CellQuery cellQuery = new CellQuery(_worksheetEntry.CellFeedLink);
+                if(_minRow != 0) cellQuery.MinimumRow = _minRow;
+                if (_maxRow != 0) cellQuery.MaximumRow = _maxRow;
+                if (_minCol != 0) cellQuery.MinimumColumn = _minCol;
+                if (_maxCol != 0) cellQuery.MaximumColumn = _maxCol;
+                cellQuery.ReturnEmpty = ReturnEmptyCells.yes;
+                CellFeed cellFeed = MasterSpreadsheetService.Query(cellQuery);
+                return cellFeed;
+            }
+            catch(Exception ex)
+            {
+                FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Error, "Error retrieving cell feed from Google worksheet entry: " + ex.Message);
+                return null;
+            }
+        }
     }
 }
