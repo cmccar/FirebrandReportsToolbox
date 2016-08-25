@@ -8,6 +8,7 @@ using Google.GData.Client;
 using Google.GData.Spreadsheets;
 using System.Windows.Forms;
 using System.Data;
+using System.IO;
 
 namespace FirebrandReportsToolbox
 {
@@ -27,220 +28,118 @@ namespace FirebrandReportsToolbox
 
     public static class ReportsDriver
     {
-        public delegate void ReportsLoadedDelegate(DateTime startTime, DateTime endTime, DataTable reportsDataTable);
+        public delegate void ReportsLoadedDelegate(BrandName _brand, DateTime startTime, DateTime endTime, DataTable reportsDataTable);
         private static ReportsLoadedDelegate handler;
         // Generate the final reports datatable for the brand, once done call the delegate to return to main form
-        public static void GetReports(DateTime _startTime, DateTime _endTime, BrandName _brand, Action<DateTime, DateTime, DataTable> _reportsLoadedMethod)
+        public static void GetReports(DateTime _startTime, DateTime _endTime, BrandName _brand, Action<BrandName, DateTime, DateTime, DataTable> _reportsLoadedMethod)
         {
             handler = new ReportsLoadedDelegate(_reportsLoadedMethod);
             switch (_brand)
             {
                 case BrandName.Runa:
-                    GetRunaReports(_startTime, _endTime, _brand);
+                    GetRunaReports(_brand, _startTime, _endTime);
                     break;
             }
         }
 
-        private const string RunaSalesStartCol = "BU"; // Column in master spreadsheet in which Runa sales data begins
-        private const string RunaSalesEndCol = "DD"; // Column in master spreadsheet in which Runa sales data ends
-        private static void GetRunaReports(DateTime _startTime, DateTime _endTime, BrandName _brand)
+        private const string RunaSalesStartCol = "BT"; // Column in master spreadsheet in which Runa sales data begins
+        private const string RunaSalesEndCol = "DC"; // Column in master spreadsheet in which Runa sales data ends
+        private static void GetRunaReports(BrandName _brand, DateTime _startTime, DateTime _endTime)
         {
             Task.Factory.StartNew(() =>
             {
-                FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information, "Creating " + Utility.GetDescription(_brand) + " reports data table.");
+                FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information, "Creating " + Utility.GetDescription(_brand) + "'s reports from " + _startTime.ToShortDateString() + " to " + _endTime.ToShortDateString() + " data table.");
 
-                SpreadsheetQuery query = new SpreadsheetQuery();
-                query.Title = "Firebrand Master Reports Sheet";
-                SpreadsheetFeed feed = GoogleApiDriver.MasterSpreadsheetService.Query(query);
+                DataTable runaReportsDataTable = CreateDataTable(_brand, Utility.LetterToColumn(RunaSalesStartCol), Utility.LetterToColumn(RunaSalesEndCol));
+                handler.Invoke(_brand, _startTime, _endTime, runaReportsDataTable);
 
-                if (feed.Entries.Count == 0)
-                {
-                    MessageBox.Show("No Google spreadsheets found!", "No Spreadsheets", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                SpreadsheetEntry masterReportsSpreadsheet = (SpreadsheetEntry)feed.Entries[0];
-                WorksheetFeed wsFeed = masterReportsSpreadsheet.Worksheets;
-                // Get the sorted (by ('No' will be above 'Yes' rows) report complete, then by brand name) submissions worksheet
-                AtomTextConstruct sortedSubmissionsTitle = new AtomTextConstruct(AtomTextConstructElementType.Title, "SortedSubmissions");
-                WorksheetEntry sortedSubmissionsWorksheet = (WorksheetEntry)wsFeed.Entries.First(ws => ws.Title.Text == sortedSubmissionsTitle.Text);
-
-                // Get start and end rows
-                Tuple<uint, uint> startAndEndRows = GetStartAndEndRows(sortedSubmissionsWorksheet, _startTime, _endTime, _brand);
-                if(startAndEndRows == null)
-                {
-                    FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Error, "Error getting the start and end rows.");
-                    return;
-                }
-                uint startRow = startAndEndRows.Item1, endRow = startAndEndRows.Item2;
-
-                // Get shared data table
-                List<List<string>> sharedNestedList = GetSharedReportData(sortedSubmissionsWorksheet, startRow, endRow);
-
-                uint minCol = Utility.LetterToColumn(RunaSalesStartCol);
-                uint maxCol = Utility.LetterToColumn(RunaSalesEndCol);
-
-                // Get sales data table columns first
-                CellFeed cellFeed = GoogleApiDriver.GetCellFeed(sortedSubmissionsWorksheet, 1, 1, minCol, maxCol);
-                List<List<string>> salesColumns = Utility.CellFeedTo2DList(cellFeed);
-
-                // Get sales data table
-                cellFeed = GoogleApiDriver.GetCellFeed(sortedSubmissionsWorksheet, startRow, endRow, minCol, maxCol);
-                List<List<string>> salesDataTable = Utility.CellFeedTo2DList(cellFeed);
-
-                // Put together columns and body
-                salesDataTable.Insert(0, salesColumns[0]);
-
-                FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information, "Created " + Utility.GetDescription(_brand) + "'s sales fields data table.");
-
-                // Make final data table
-                List<List<string>> finalDataTable = Utility.Combine2DLists(sharedNestedList, salesDataTable);
-
-                DataTable final = Utility.NestedListToDataTable(finalDataTable);
-                handler.Invoke(_startTime, _endTime, final);
-             
-                FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information, "Successfully created " + Utility.GetDescription(_brand) + "'s final reports data table.");
+                FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information,
+                    "Successfully created " + Utility.GetDescription(_brand) + "'s final reports data table. Make any needed edits, when done click \"Export table to excel\" option under the \"File\" menu.");
             });
         }
 
-        #region Shared Fields Data
 
-        private const string SharedFieldsData1StartCol = "D"; // Column in master spreadsheet in which shared fields data 1 begins
-        private const string SharedFieldsData1EndCol = "K"; // Column in master spreadsheet in which shared fields data 1 ends
-        private const string SharedFieldsData2StartCol = "W"; // Column in master spreadsheet in which shared fields data 2 begins
-        private const string SharedFieldsData2EndCol = "BT"; // Column in master spreadsheet in which shared fields data 2 ends
-        // Returns a merged nested list of both of the shared fields data for the reports
-        private static List<List<string>> GetSharedReportData(WorksheetEntry _worksheetEntry, uint _startRow, uint _endRow)
+        private const string SheetName = "Submissions";
+        private const string BrandCol = "B";
+        private const string SharedFieldsData1StartCol = "C"; // Column in master spreadsheet in which shared fields data 1 begins
+        private const string SharedFieldsData1EndCol = "J"; // Column in master spreadsheet in which shared fields data 1 ends
+        private const string SharedFieldsData2StartCol = "V"; // Column in master spreadsheet in which shared fields data 2 begins
+        private const string SharedFieldsData2EndCol = "BS"; // Column in master spreadsheet in which shared fields data 2 ends
+        private const string SubmissionIdCol = "DE";
+        private static DataTable CreateDataTable(BrandName _brand, int _brandSalesStartCol, int _brandSalesEndCol)
         {
-            uint minCol1 = Utility.LetterToColumn(SharedFieldsData1StartCol);
-            uint maxCol1 = Utility.LetterToColumn(SharedFieldsData1EndCol);
+            // Get all cells from the sheet
+            IList<IList<object>> allCells = GoogleApiDriver.GetSheetValues(SheetName);
+            // Determine which rows have reports for the brand argument passed in
+            List<int> brandRowNums = new List<int>();
+            // Always add 0'th row (column headers)
+            brandRowNums.Add(0);
+            int brandCol = Utility.LetterToColumn(BrandCol);
+            for (int i = 0; i < allCells.Count; i++)
+            {
+                // If brand name matches, record row number
+                if (allCells[i][brandCol].ToString() == Enum.GetName(typeof(BrandName), _brand))
+                    brandRowNums.Add(i);
+            }
 
-            // Get shared data table 1 columns first (first part of report)
-            CellFeed cellFeed = GoogleApiDriver.GetCellFeed(_worksheetEntry, 1, 1, minCol1, maxCol1);
-            List <List<string>> sharedDateTable1Columns = Utility.CellFeedTo2DList(cellFeed);
+            // Create nested list to eventually become final reports data table
+            List<List<object>> reportsNestedList = new List<List<object>>();
 
-            // Get shared data table 1 body
-            cellFeed = GoogleApiDriver.GetCellFeed(_worksheetEntry, _startRow, _endRow, minCol1, maxCol1);
-            List<List<string>> sharedDateTable1 = Utility.CellFeedTo2DList(cellFeed);
+            int sharedFields1Start = Utility.LetterToColumn(SharedFieldsData1StartCol);
+            int sharedFields1End = Utility.LetterToColumn(SharedFieldsData1EndCol);
+            int sharedFields2Start = Utility.LetterToColumn(SharedFieldsData2StartCol);
+            int sharedFields2End = Utility.LetterToColumn(SharedFieldsData2EndCol);
+            int submissionIdCol = Utility.LetterToColumn(SubmissionIdCol);
 
-            // Put together columns and body
-            sharedDateTable1.Insert(0, sharedDateTable1Columns[0]);
+            // Iterate over all rows for this brand and append each relevant section of the sheet
+            foreach (int rowNum in brandRowNums)
+            {
+                List<object> rowList = new List<object>();
+                // Add shared fields 1 to this row
+                rowList.AddRange(allCells[rowNum].Skip(sharedFields1Start).Take(sharedFields1End - sharedFields1Start).ToList<object>());
+                // Add shared fields 2 to this row
+                rowList.AddRange(allCells[rowNum].Skip(sharedFields2Start).Take(sharedFields2End - sharedFields2Start).ToList<object>());
+                // Add brand's sales fields to this row
+                rowList.AddRange(allCells[rowNum].Skip(_brandSalesStartCol).Take(_brandSalesEndCol - _brandSalesStartCol).ToList<object>());
+                // Add the report's submission ID to this row
+                rowList.Add(allCells[rowNum][submissionIdCol]);
+                // Add row to the nested list
+                reportsNestedList.Add(rowList);
+            }
 
-            FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information, "Created shared fields data table #1.");
-         
-            uint minCol2 = Utility.LetterToColumn(SharedFieldsData2StartCol);
-            uint maxCol2 = Utility.LetterToColumn(SharedFieldsData2EndCol);
-
-            // Get shared data table 2 columns first (second part of report)
-            cellFeed = GoogleApiDriver.GetCellFeed(_worksheetEntry, 1, 1, minCol2, maxCol2);
-            List<List<string>> sharedDateTable2Columns = Utility.CellFeedTo2DList(cellFeed);
-
-            // Then shared data table 2 body
-            cellFeed = GoogleApiDriver.GetCellFeed(_worksheetEntry, _startRow, _endRow, minCol2, maxCol2);
-            List<List<string>> sharedDateTable2 = Utility.CellFeedTo2DList(cellFeed);
-
-            // Put together columns and body
-            sharedDateTable2.Insert(0, sharedDateTable2Columns[0]);
-
-            FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Information, "Created shared fields data table #2.");
-
-            // Put together final shared data table
-            List<List<string>> allSharedDataTable = Utility.Combine2DLists(sharedDateTable1, sharedDateTable2);
-           
-            return allSharedDataTable;
+            return Utility.NestedListToDataTable(reportsNestedList);
         }
 
-        #endregion // Shared Fields Data
-
-        private const string SubmissionDateAndBrandStartCol = "A"; // Column in master spreadsheet in which submission date and brand data starts
-        private const string SubmissionDateAndBrandEndCol = "B"; // Column in master spreadsheet in which submission date and brand data ends
-        private static Tuple<uint, uint> GetStartAndEndRows(WorksheetEntry _sortedSubmissionsWorksheet, DateTime _startTime, DateTime _endTime, BrandName _brand)
+        private static List<string> GetSubmissionNumbers(BrandName _brand, string _month)
         {
-            string brandName = Utility.GetDescription(_brand);
+            List<string> submissionNumbers = new List<string>();
 
-            CellFeed cellFeed = GoogleApiDriver.GetCellFeed(_sortedSubmissionsWorksheet, 2, _sortedSubmissionsWorksheet.RowCount.Count, Utility.LetterToColumn(SubmissionDateAndBrandStartCol), Utility.LetterToColumn(SubmissionDateAndBrandEndCol));
-            if(cellFeed == null)
+            string brandName = Enum.GetName(typeof(BrandName), _brand);
+            string brandReportsPath = Environment.GetFolderPath(
+                   Environment.SpecialFolder.Personal) + brandName + "\\" + _month + "\\";
+            if (!Directory.Exists(brandReportsPath))
+                Directory.CreateDirectory(brandReportsPath);
+
+            string thisMonthsReportsFileName = brandReportsPath + brandName + "Reports.xlsx";
+            if (File.Exists(thisMonthsReportsFileName))
             {
-                FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Error, "Error retrieving the brand's cell feed's start and end rows.");
-                return null;
+                var book = new LinqToExcel.ExcelQueryFactory(thisMonthsReportsFileName);
+
+                var query =
+                    from row in book.Worksheet(0)
+                    let item = new
+                    {
+                        SubmissionId = row["Submission ID"].Cast<string>(),
+                    }
+                    select item;
+
+                foreach(var row in query)
+                {
+                    submissionNumbers.Add(row.SubmissionId);
+                }
+
             }
-
-            List<List<string>> brandAndDemoIdNestedList = Utility.CellFeedTo2DList(cellFeed);
-
-
-            uint startRow = 0, endRow = 0;
-            for (int i = 0; i < brandAndDemoIdNestedList.Count; i++)
-            {
-                List<string> rowList = brandAndDemoIdNestedList[i];
-                DateTime rowSubmissionDate = new DateTime();
-                bool dateTimeParseSuccess = false;
-                string rowBrandName = null;
-                for (int j = 0; j < rowList.Count; j++)
-                {
-                    if (rowList[j] == null)
-                        break;
-                    switch (j)
-                    {
-                        case 0:
-                            if (!(dateTimeParseSuccess = DateTime.TryParse(rowList[j], out rowSubmissionDate)))
-                            {
-                                FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Error, "Error parsing row's submission date, invalid Datetime format.");
-                            }
-                            break;
-
-                        case 1:
-                            rowBrandName = rowList[j];
-                            break;
-                    }
-                }
-
-                if (!dateTimeParseSuccess)
-                {
-                    // This means the rows are into empty rows, set end row and break
-                    if (startRow != 0)
-                    {
-                        endRow = (uint)i;
-                        break;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                }
-                  
-                if (rowBrandName == brandName)
-                {
-                    if (startRow == 0)
-                    {
-                        if (rowSubmissionDate >= _startTime)
-                        {
-                            startRow = (uint)i;
-                        }
-                    }
-                    else // Look for endRow now
-                    {
-                        if (rowSubmissionDate >= _endTime)
-                        {
-                            endRow = (uint)i;
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    // This means the rows are into a new brand, set end row now
-                    if (startRow != 0)
-                    {
-                        endRow = (uint)i;
-                        break;
-                    }
-                }
-            }
-
-            if (startRow != 0 && endRow != 0)
-                return new Tuple<uint, uint>(startRow, endRow);
-            else
-                return null;
+            return submissionNumbers;
         }
     }
 }

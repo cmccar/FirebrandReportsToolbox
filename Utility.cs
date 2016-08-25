@@ -69,14 +69,14 @@ namespace FirebrandReportsToolbox
             return letter;
         }
 
-        public static uint LetterToColumn(string letter)
+        public static int LetterToColumn(string letter)
         {
             int column = 0;
             for (var i = 0; i < letter.Length; i++)
             {
                 column += ((int)letter[i] - 64) * (int)Math.Pow(26, letter.Length - i - 1);
             }
-            return (uint)column;
+            return column - 1;
         }
 
         public static bool SaveAsExcelWorkbook(BrandName _brand, string _filePath, DataTable _table)
@@ -255,7 +255,7 @@ namespace FirebrandReportsToolbox
             return combined2DList;
         }
 
-        public static DataTable NestedListToDataTable(this List<List<string>> _list)
+        public static DataTable NestedListToDataTable(this List<List<object>> _list)
         {
             DataTable tmp = new DataTable();
             for (int i = 0; i < _list.Count; i++)

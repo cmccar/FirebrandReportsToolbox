@@ -30,10 +30,10 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GetReportsOptionsForm));
             this.getReportsOptionsTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-            this.endDateTimePicker = new System.Windows.Forms.DateTimePicker();
             this.masterSpreadsheetStartRowLabel = new System.Windows.Forms.Label();
-            this.masterSpreadsheetEndRowLabel = new System.Windows.Forms.Label();
             this.getReportsButton = new System.Windows.Forms.Button();
+            this.endDateTimePicker = new System.Windows.Forms.DateTimePicker();
+            this.masterSpreadsheetEndRowLabel = new System.Windows.Forms.Label();
             this.startDateTimePicker = new System.Windows.Forms.DateTimePicker();
             this.getReportsOptionsTableLayoutPanel.SuspendLayout();
             this.SuspendLayout();
@@ -61,17 +61,6 @@
             this.getReportsOptionsTableLayoutPanel.Size = new System.Drawing.Size(360, 200);
             this.getReportsOptionsTableLayoutPanel.TabIndex = 23;
             // 
-            // endDateTimePicker
-            // 
-            this.endDateTimePicker.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.endDateTimePicker.Location = new System.Drawing.Point(3, 123);
-            this.endDateTimePicker.MaxDate = new System.DateTime(2026, 1, 1, 0, 0, 0, 0);
-            this.endDateTimePicker.MinDate = new System.DateTime(2014, 1, 1, 0, 0, 0, 0);
-            this.endDateTimePicker.Name = "endDateTimePicker";
-            this.endDateTimePicker.Size = new System.Drawing.Size(354, 20);
-            this.endDateTimePicker.TabIndex = 42;
-            this.endDateTimePicker.Value = new System.DateTime(2016, 8, 13, 14, 56, 34, 0);
-            // 
             // masterSpreadsheetStartRowLabel
             // 
             this.masterSpreadsheetStartRowLabel.AutoSize = true;
@@ -84,6 +73,28 @@
             this.masterSpreadsheetStartRowLabel.Text = "Start time (based on when report submitted)";
             this.masterSpreadsheetStartRowLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // getReportsButton
+            // 
+            this.getReportsButton.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.getReportsButton.Location = new System.Drawing.Point(3, 163);
+            this.getReportsButton.Name = "getReportsButton";
+            this.getReportsButton.Size = new System.Drawing.Size(354, 34);
+            this.getReportsButton.TabIndex = 38;
+            this.getReportsButton.Text = "Get Reports";
+            this.getReportsButton.UseVisualStyleBackColor = true;
+            this.getReportsButton.Click += new System.EventHandler(this.getReportsButton_Click);
+            // 
+            // endDateTimePicker
+            // 
+            this.endDateTimePicker.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.endDateTimePicker.Location = new System.Drawing.Point(3, 123);
+            this.endDateTimePicker.MaxDate = new System.DateTime(2026, 1, 1, 0, 0, 0, 0);
+            this.endDateTimePicker.MinDate = new System.DateTime(2014, 1, 1, 0, 0, 0, 0);
+            this.endDateTimePicker.Name = "endDateTimePicker";
+            this.endDateTimePicker.Size = new System.Drawing.Size(354, 20);
+            this.endDateTimePicker.TabIndex = 42;
+            this.endDateTimePicker.Value = new System.DateTime(2016, 8, 20, 13, 44, 0, 0);
+            // 
             // masterSpreadsheetEndRowLabel
             // 
             this.masterSpreadsheetEndRowLabel.AutoSize = true;
@@ -95,17 +106,6 @@
             this.masterSpreadsheetEndRowLabel.TabIndex = 34;
             this.masterSpreadsheetEndRowLabel.Text = "End time (based on when report submitted)";
             this.masterSpreadsheetEndRowLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // getReportsButton
-            // 
-            this.getReportsButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.getReportsButton.Location = new System.Drawing.Point(3, 163);
-            this.getReportsButton.Name = "getReportsButton";
-            this.getReportsButton.Size = new System.Drawing.Size(354, 34);
-            this.getReportsButton.TabIndex = 38;
-            this.getReportsButton.Text = "Get Reports";
-            this.getReportsButton.UseVisualStyleBackColor = true;
-            this.getReportsButton.Click += new System.EventHandler(this.getReportsButton_Click);
             // 
             // startDateTimePicker
             // 

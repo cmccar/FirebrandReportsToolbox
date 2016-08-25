@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -14,12 +15,6 @@ namespace FirebrandReportsToolbox
     public partial class FirebrandReportsToolboxForm : Form
     {
         public static FirebrandReportsToolboxForm GRef;
-
-        public static BrandName LastBrandReportsGeneratedFor;
-        public static DateTime LastStartTime = new DateTime();
-        public static DateTime LastEndTime = new DateTime();
-        public static DataTable LastReportsDataTable = new DataTable();
-
         public FirebrandReportsToolboxForm()
         {
             InitializeComponent();
@@ -46,47 +41,58 @@ namespace FirebrandReportsToolbox
         private void FirebrandReportsToolboxForm_Load(object sender, EventArgs e)
         {
             GRef = this;
-            GoogleApiDriver.ConfigureOAuth2(false);
+            GoogleApiDriver.Configure();
         }
 
-        private void changeGoogleAccountToolStripMenuItem_Click(object sender, EventArgs e)
+        #region Menu Click Events
+
+        private void fileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            GoogleApiDriver.ConfigureOAuth2(true);
+            exportTableToExcelToolStripMenuItem.Enabled = IsDataTableLoaded;
         }
 
         private void exportTableToExcelToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            try
-            {
-                string fileName = Utility.GetDescription(LastBrandReportsGeneratedFor) + "Reports_" + LastStartTime.ToString("MM.dd.yy") + "-" + LastEndTime.ToString("MM.dd.yy") + ".xlsx";
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.DefaultExt = ".xlsx";
-                saveFileDialog.InitialDirectory = Properties.Settings.Default.ReportsDirectory;
-                saveFileDialog.FileName = fileName;
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            Thread exportToExcelThread = new Thread(() => {
+                try
                 {
-                    if (!saveFileDialog.FileName.EndsWith(".xlsx"))
+                    string fileName = Utility.GetDescription(LastBrandReportsGeneratedFor) + "Reports_" + LastStartTime.ToString("MM.dd.yy") + "-" + LastEndTime.ToString("MM.dd.yy") + ".xlsx";
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.DefaultExt = ".xlsx";
+                    saveFileDialog.InitialDirectory = Properties.Settings.Default.ReportsDirectory;
+                    saveFileDialog.FileName = fileName;
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
                     {
-                        NewEvent(EventType.Error, "Please select a file with a .xlsx extension.");
-                        return;
-                    }
+                        if (!saveFileDialog.FileName.EndsWith(".xlsx"))
+                        {
+                            NewEvent(EventType.Error, "Please select a file with a .xlsx extension.");
+                            return;
+                        }
 
-                    if (Utility.SaveAsExcelWorkbook(LastBrandReportsGeneratedFor, saveFileDialog.FileName, LastReportsDataTable))
-                    {
-                        string filePath = Path.GetDirectoryName(saveFileDialog.FileName);
-                        NewEvent(EventType.Information, "Succesfully created " + Utility.GetDescription(LastBrandReportsGeneratedFor) + " reports Excel spreadsheet at " + fileName);
-                        Properties.Settings.Default.ReportsDirectory = filePath;
-                    }
-                    else
-                    {
-                        NewEvent(EventType.Information, "Error creating " + Utility.GetDescription(LastBrandReportsGeneratedFor) + " reports Excel spreadsheet.");
+                        if (Utility.SaveAsExcelWorkbook(LastBrandReportsGeneratedFor, saveFileDialog.FileName, LastReportsDataTable))
+                        {
+                            string filePath = Path.GetDirectoryName(saveFileDialog.FileName);
+                            NewEvent(EventType.Information, "Succesfully created " + Utility.GetDescription(LastBrandReportsGeneratedFor) + " reports Excel spreadsheet at " + fileName);
+                            Properties.Settings.Default.ReportsDirectory = filePath;
+                        }
+                        else
+                        {
+                            NewEvent(EventType.Information, "Error creating " + Utility.GetDescription(LastBrandReportsGeneratedFor) + " reports Excel spreadsheet.");
+                        }
                     }
                 }
-            }
-            catch(Exception ex)
-            {
-                NewEvent(EventType.Information, "Error creating " + Utility.GetDescription(LastBrandReportsGeneratedFor) + " reports Excel spreadsheet: " + ex.Message);
-            }
+                catch (Exception ex)
+                {
+                    NewEvent(EventType.Information, "Error creating " + Utility.GetDescription(LastBrandReportsGeneratedFor) + " reports Excel spreadsheet: " + ex.Message);
+                }
+            });
+            exportToExcelThread.SetApartmentState(ApartmentState.STA);
+            exportToExcelThread.Start();
+        }
+
+        private void changeGoogleAccountToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //GoogleApiDriver.ConfigureOAuth2(true);
         }
 
         private void getReportsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -97,34 +103,47 @@ namespace FirebrandReportsToolbox
             BrandName brand = (BrandName)Enum.Parse(typeof(BrandName), tag.ToString());
             GetReportsOptionsForm getReportsOptionsForm = new GetReportsOptionsForm(brand);
             getReportsOptionsForm.ShowDialog();
-            if(getReportsOptionsForm.DialogResult == DialogResult.OK)
+        }
+
+        #endregion // Menu Click Events
+
+        public static BrandName LastBrandReportsGeneratedFor;
+        public static DateTime LastStartTime = new DateTime();
+        public static DateTime LastEndTime = new DateTime();
+        public static DataTable LastReportsDataTable = new DataTable();
+        public static bool IsDataTableLoaded = false;
+        public void ParseLoadedReports(BrandName _brand, DateTime _startTime, DateTime _endTime, DataTable _reportsDataTable)
+        {
+            BeginInvoke((MethodInvoker)delegate
             {
-                LastBrandReportsGeneratedFor = getReportsOptionsForm.Brand;
-                LastStartTime = getReportsOptionsForm.StartTime;
-                LastEndTime = getReportsOptionsForm.EndTime;
-                LastReportsDataTable = getReportsOptionsForm.Reports;
+                LastBrandReportsGeneratedFor = _brand;
+                LastStartTime = _startTime;
+                LastEndTime = _endTime;
+                LastReportsDataTable = _reportsDataTable;
 
                 // Reset data grid view
                 rightSideDataGridView.Columns.Clear();
                 rightSideDataGridView.Rows.Clear();
 
                 // Add columns to datagrid view
-                for (int i = 0; i < getReportsOptionsForm.Reports.Columns.Count; i++)
+                for (int i = 0; i < _reportsDataTable.Columns.Count; i++)
                 {
-                    DataColumn dc = getReportsOptionsForm.Reports.Columns[i];
+                    DataColumn dc = _reportsDataTable.Columns[i];
                     rightSideDataGridView.Columns.Add(dc.ColumnName, dc.ColumnName);
                 }
-                
+
                 // Add rows to datagrid view
-                for (int i = 0; i < getReportsOptionsForm.Reports.Rows.Count; i++)
+                for (int i = 0; i < _reportsDataTable.Rows.Count; i++)
                 {
-                    DataRow dr = getReportsOptionsForm.Reports.Rows[i];
+                    DataRow dr = _reportsDataTable.Rows[i];
                     string firstItem = dr[0].ToString();
                     if (string.IsNullOrEmpty(firstItem))
                         continue;
                     rightSideDataGridView.Rows.Add(dr.ItemArray);
                 }
-            }
+
+                IsDataTableLoaded = true;
+            });
         }
 
         #region UI Helper Functions
@@ -478,19 +497,5 @@ namespace FirebrandReportsToolbox
         }
 
         #endregion //Helper Functions
-
-        // Enlarge selected cells such that they fit their content
-        private void rightSideDataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
-        {
-            if (e.RowIndex < 0 | e.ColumnIndex < 0) return;
-            if (rightSideDataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex].Selected)
-            {
-                e.Graphics.FillRectangle(SystemBrushes.Highlight, e.CellBounds);
-                e.Graphics.DrawString(e.Value.ToString(), new Font(e.CellStyle.Font.FontFamily,
-                e.CellStyle.Font.Size * 1.5f), SystemBrushes.HighlightText, e.CellBounds.Location);
-                e.Handled = true;
-            }   
-        }
-
     }
 }

@@ -26,12 +26,12 @@ namespace FirebrandReportsToolbox.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string RefreshToken {
+        public string CredPath {
             get {
-                return ((string)(this["RefreshToken"]));
+                return ((string)(this["CredPath"]));
             }
             set {
-                this["RefreshToken"] = value;
+                this["CredPath"] = value;
             }
         }
         

@@ -23,6 +23,8 @@ namespace FirebrandReportsToolbox
             InitializeComponent();
             Brand = _brand;
             AcceptButton = getReportsButton;
+            startDateTimePicker.Value = DateTime.Today.AddMonths(-1);
+            endDateTimePicker.Value = DateTime.Today;
         }
 
         private void getReportsButton_Click(object sender, EventArgs e)
@@ -33,19 +35,7 @@ namespace FirebrandReportsToolbox
                 return;
             }
 
-            ReportsDriver.GetReports(startDateTimePicker.Value, endDateTimePicker.Value, Brand, ParseLoadedReports);
-        }
-
-        public void ParseLoadedReports(DateTime _startTime, DateTime _endTime, DataTable _reportsDataTable)
-        {
-            BeginInvoke((MethodInvoker)delegate
-            {
-                Reports = _reportsDataTable;
-                StartTime = _startTime;
-                EndTime = _endTime;
-                DialogResult = DialogResult.OK;
-                Close();
-            });
+            ReportsDriver.GetReports(startDateTimePicker.Value, endDateTimePicker.Value, Brand, FirebrandReportsToolboxForm.GRef.ParseLoadedReports);
         }
     }
 }

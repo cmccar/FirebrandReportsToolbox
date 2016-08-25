@@ -99,8 +99,8 @@
             // 
             // rightSideDataGridView
             // 
-            this.rightSideDataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
-            this.rightSideDataGridView.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
+            this.rightSideDataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.ColumnHeader;
+            this.rightSideDataGridView.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCellsExceptHeaders;
             this.rightSideDataGridView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
@@ -115,7 +115,6 @@
             this.rightSideDataGridView.Name = "rightSideDataGridView";
             this.rightSideDataGridView.Size = new System.Drawing.Size(900, 395);
             this.rightSideDataGridView.TabIndex = 5;
-            this.rightSideDataGridView.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.rightSideDataGridView_CellPainting);
             // 
             // menuStrip1
             // 
@@ -135,6 +134,7 @@
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
+            this.fileToolStripMenuItem.Click += new System.EventHandler(this.fileToolStripMenuItem_Click);
             // 
             // exportTableToExcelToolStripMenuItem
             // 
