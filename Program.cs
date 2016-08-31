@@ -14,6 +14,7 @@ namespace FirebrandReportsToolbox
         [STAThread]
         static void Main()
         {
+            FileSystemDriver startFileSystemDriver = new FileSystemDriver();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FirebrandReportsToolboxForm());

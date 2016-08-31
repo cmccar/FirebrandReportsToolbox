@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FirebrandReportsToolbox.DataClasses;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -56,7 +57,10 @@ namespace FirebrandReportsToolbox
             Thread exportToExcelThread = new Thread(() => {
                 try
                 {
-                    string fileName = Utility.GetDescription(LastBrandReportsGeneratedFor) + "Reports_" + LastStartTime.ToString("MM.dd.yy") + "-" + LastEndTime.ToString("MM.dd.yy") + ".xlsx";
+                    FileSystemDriver.GRef.CreateBrandReportsExcel(LastBrandReportsGeneratedFor, LastMonth, LastReportsDataTable);
+
+                    /*
+                    string fileName = Utility.GetDescription(LastBrandReportsGeneratedFor) + "Reports_" + LastMonth.StartTime.ToString("MM.dd.yy") + "-" + LastEndTime.ToString("MM.dd.yy") + ".xlsx";
                     SaveFileDialog saveFileDialog = new SaveFileDialog();
                     saveFileDialog.DefaultExt = ".xlsx";
                     saveFileDialog.InitialDirectory = Properties.Settings.Default.ReportsDirectory;
@@ -80,6 +84,7 @@ namespace FirebrandReportsToolbox
                             NewEvent(EventType.Information, "Error creating " + Utility.GetDescription(LastBrandReportsGeneratedFor) + " reports Excel spreadsheet.");
                         }
                     }
+                    */
                 }
                 catch (Exception ex)
                 {
@@ -101,24 +106,23 @@ namespace FirebrandReportsToolbox
             if (tag == null)
                 return;
             BrandName brand = (BrandName)Enum.Parse(typeof(BrandName), tag.ToString());
-            GetReportsOptionsForm getReportsOptionsForm = new GetReportsOptionsForm(brand);
-            getReportsOptionsForm.ShowDialog();
+            GetReportsByMonthForm getReportsByMonthForm = new GetReportsByMonthForm(brand);
+            getReportsByMonthForm.StartPosition = FormStartPosition.CenterParent;
+            getReportsByMonthForm.ShowDialog(this);
         }
 
         #endregion // Menu Click Events
 
         public static BrandName LastBrandReportsGeneratedFor;
-        public static DateTime LastStartTime = new DateTime();
-        public static DateTime LastEndTime = new DateTime();
+        public static Month LastMonth = null;
         public static DataTable LastReportsDataTable = new DataTable();
         public static bool IsDataTableLoaded = false;
-        public void ParseLoadedReports(BrandName _brand, DateTime _startTime, DateTime _endTime, DataTable _reportsDataTable)
+        public void ParseLoadedReports(BrandName _brandName, Month _month, DataTable _reportsDataTable)
         {
             BeginInvoke((MethodInvoker)delegate
             {
-                LastBrandReportsGeneratedFor = _brand;
-                LastStartTime = _startTime;
-                LastEndTime = _endTime;
+                LastBrandReportsGeneratedFor = _brandName;
+                LastMonth = _month;
                 LastReportsDataTable = _reportsDataTable;
 
                 // Reset data grid view
@@ -145,8 +149,6 @@ namespace FirebrandReportsToolbox
                 IsDataTableLoaded = true;
             });
         }
-
-        #region UI Helper Functions
 
         #region Events
 
@@ -255,7 +257,6 @@ namespace FirebrandReportsToolbox
 
         #endregion //Click Events
 
-
         #region Menu Options
 
         /// <summary>
@@ -288,6 +289,8 @@ namespace FirebrandReportsToolbox
         }
 
         #endregion //Menu Options
+
+        #region UI Helper Functions
 
         /// <summary>
         /// Reloads the dynamic aspects of the UI in a thread safe way
@@ -496,6 +499,6 @@ namespace FirebrandReportsToolbox
             this.eventsListView.Columns[this.eventsListView.Columns.Count - 1].Width = -2;
         }
 
-        #endregion //Helper Functions
+        #endregion // UI Helper Functions
     }
 }

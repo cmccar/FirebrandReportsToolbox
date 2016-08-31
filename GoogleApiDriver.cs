@@ -94,12 +94,20 @@ namespace FirebrandReportsToolbox
 
         public static IList<IList<object>> GetSheetValues(string _range)
         {
-            SpreadsheetsResource.ValuesResource.GetRequest request =
-                masterSpreadsheetService.Spreadsheets.Values.Get(spreadsheetId, _range);
-            ValueRange response = request.Execute();
-            IList<IList<object>> values = response.Values;
+            try
+            {
+                SpreadsheetsResource.ValuesResource.GetRequest request =
+                    masterSpreadsheetService.Spreadsheets.Values.Get(spreadsheetId, _range);
+                ValueRange response = request.Execute();
+                IList<IList<object>> values = response.Values;
 
-            return values;
+                return values;
+            }
+            catch(Exception ex)
+            {
+                throw (ex);
+                //FirebrandReportsToolboxForm.GRef.NewEvent(EventType.Error, "Error getting spreadsheet values: " + ex.Message);
+            }
         }
         /*
         private static string LoadRefreshToken()

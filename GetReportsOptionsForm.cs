@@ -35,7 +35,7 @@ namespace FirebrandReportsToolbox
                 return;
             }
 
-            ReportsDriver.GetReports(startDateTimePicker.Value, endDateTimePicker.Value, Brand, FirebrandReportsToolboxForm.GRef.ParseLoadedReports);
+            //ReportsDriver.GetReports(startDateTimePicker.Value, endDateTimePicker.Value, Brand, FirebrandReportsToolboxForm.GRef.ParseLoadedReports);
         }
     }
 }
